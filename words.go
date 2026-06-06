@@ -53,3 +53,32 @@ func newWord(wordlist []string) string {
 	}
 	return wordlist[rand.Intn(size)]
 }
+
+// Run on guess submission
+func isMatching(guess []letter, answer string) ([]letter, bool) {
+	word := guess
+	matching := true
+
+	// Cast answer to map for lookup
+	inAnswer := make(map[rune]struct{})
+	for _, char := range answer {
+		inAnswer[rune(char)] = struct{}{}
+	}
+
+	//
+	for i, char := range word {
+		if char.char == rune(answer[i]) {
+			// Correct VAL and POS
+			char.state = Correct
+		} else if _, ok := inAnswer[char.char]; ok {
+			// Correct VAL
+			char.state = Partial
+			matching = false
+		} else {
+			// Not in answer
+			char.state = Wrong
+			matching = false
+		}
+	}
+	return word, matching
+}
