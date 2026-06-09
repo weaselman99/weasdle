@@ -87,18 +87,18 @@ func isMatching(guess []letter, answer []letter) ([]letter, bool) {
 		inAnswer[char.char] = struct{}{}
 	}
 
-	//
+	// update the state of each letter in guess
 	for i, char := range word {
 		if char.char == answer[i].char {
 			// Correct VAL and POS
-			char.state = Correct
+			word[i].state = Correct
 		} else if _, ok := inAnswer[char.char]; ok {
 			// Correct VAL
-			char.state = Partial
+			word[i].state = Partial
 			matching = false
 		} else {
 			// Not in answer
-			char.state = Wrong
+			word[i].state = Wrong
 			matching = false
 		}
 	}

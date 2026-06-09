@@ -2,7 +2,10 @@ module weasdle
 
 go 1.25.0
 
-require charm.land/bubbletea/v2 v2.0.7
+require (
+	charm.land/bubbletea/v2 v2.0.7
+	charm.land/lipgloss/v2 v2.0.3
+)
 
 require (
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
