@@ -51,7 +51,9 @@ func (m *model) handleBackspace() (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
+	// Replace current word with []slice with last element removed
 	m.guesses[m.wordPos] = m.guesses[m.wordPos][:m.charPos-1]
+	m.errorMsg = ""
 
 	m.charPos--
 	return m, nil
@@ -65,10 +67,17 @@ func (m *model) handleEnter() (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
+	// If guess isnt valid, don't update anything
+	if _, ok := allowedWords[letterToString(word)]; !ok {
+		m.errorMsg = "Not a valid word"
+		return m, nil
+	}
+
 	// Check guess and change states
-	var matching bool
-	word, matching = isMatching(word, m.answer)
-	m.guesses[m.wordPos] = word
+	result, matching := isMatching(word, m.answer)
+
+	m.guesses[m.wordPos] = result
+	m.updateLetters(result)
 
 	if matching {
 		// If guess is correct
@@ -76,16 +85,30 @@ func (m *model) handleEnter() (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	if _, ok := allowedWords[letterToString(word)]; !ok {
-		// If guess isnt valid
-		m.errorMsg = "Not a valid word"
-		return m, nil
-	}
-
 	// Advance wordpos and reset charpos
 	m.wordPos++
 	m.charPos = 0
+
+	// Check whether this was the last guess
+	if m.wordPos > 5 {
+		m.gameState = Lost
+		m.errorMsg = "You lost!"
+		return m, nil
+	}
+
 	return m, nil
+}
+
+// Changes the letterStates in letters from a given guess
+func (m *model) updateLetters(word []letter) {
+	for _, char := range word {
+		let := m.letters[char.char]
+		if let.state == Correct {
+			continue
+		}
+		let.state = char.state
+		m.letters[char.char] = let
+	}
 }
 
 // Handles the default key press

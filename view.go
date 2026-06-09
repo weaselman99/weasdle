@@ -10,13 +10,7 @@ import (
 // ---------------- STYLES	----------------
 // Colours
 var (
-	// WHITE  = lipgloss.Color("#d8dee9")
-	// BLACK  = lipgloss.Color("#4c566a")
-	// GRAY   = lipgloss.Color("#565f89")
-	// RED    = lipgloss.Color("#bf616a")
-	// GREEN  = lipgloss.Color("#a3be8c")
-	// YELLOW = lipgloss.Color("#ebcb8b")
-	WHITE  = lipgloss.Color("#d8dee9")
+	WHITE  = lipgloss.Color("#dddddd")
 	BLACK  = lipgloss.Black
 	GRAY   = lipgloss.Color("#444444")
 	RED    = lipgloss.Red
@@ -24,16 +18,44 @@ var (
 	YELLOW = lipgloss.Yellow
 )
 
+var areaStyle = lipgloss.NewStyle().
+	Width(60).
+	Height(30).
+	Border(lipgloss.RoundedBorder(), true).
+	Align(lipgloss.Center)
+
 var textStyle = lipgloss.NewStyle().
 	Bold(true).
 	Foreground(WHITE)
 
 var boxStyle = lipgloss.NewStyle().
 	Inherit(textStyle).
-	Margin(0, 1, 1).
-	Padding(1, 3)
+	Margin(0, 1, 0).
+	Padding(0, 2).
+	Border(lipgloss.ThickBorder(), true)
 
 var rowStyle = lipgloss.NewStyle()
+
+var lettersStyle = lipgloss.NewStyle().
+	Margin(0, 0, 0).
+	Padding(0, 1).
+	Foreground(WHITE)
+
+var keyboardStyle = lipgloss.NewStyle().
+	Border(lipgloss.RoundedBorder(), true)
+
+var titleStyle = lipgloss.NewStyle().
+	Bold(true).
+	Italic(true).
+	Border(lipgloss.NormalBorder()).
+	BorderForeground(WHITE).
+	Foreground(WHITE).
+	Padding(0, 1)
+
+var errorStyle = lipgloss.NewStyle().
+	Bold(true).
+	Foreground(RED).
+	MarginLeft(2)
 
 // ---------------- VIEWS	----------------
 
@@ -46,11 +68,11 @@ func (m model) renderWords() string {
 			let := boxStyle
 			switch char.state {
 			case Wrong:
-				let = let.Background(GRAY).Foreground(BLACK)
+				let = let.Foreground(GRAY).BorderForeground(GRAY)
 			case Partial:
-				let = let.Background(YELLOW)
+				let = let.Foreground(YELLOW).BorderForeground(YELLOW)
 			case Correct:
-				let = let.Background(GREEN)
+				let = let.Foreground(GREEN).BorderForeground(GREEN)
 			}
 			word = lipgloss.JoinHorizontal(
 				lipgloss.Left,
@@ -69,19 +91,70 @@ func (m model) renderWords() string {
 	return result
 }
 
-func (m model) View() tea.View {
-	// dELTE test
-	var guesses string
-	for _, word := range m.guesses {
-		guesses += "\n"
-		for _, char := range word {
-			guesses += string(char.char)
+func (m model) renderKeys() string {
+	var result string
+	keys := [][]rune{
+		{'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'},
+		{'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'},
+		{'z', 'x', 'c', 'v', 'b', 'n', 'm'},
+	}
+
+	for _, row := range keys {
+		var rowString string
+		for _, key := range row {
+			let := m.letters[key]
+			letStyle := lettersStyle
+			switch let.state {
+			case Wrong:
+				letStyle = letStyle.Background(GRAY).Foreground(BLACK)
+			case Partial:
+				letStyle = letStyle.Background(YELLOW).Foreground(BLACK)
+			case Correct:
+				letStyle = letStyle.Background(GREEN).Foreground(BLACK)
+			}
+			rowString = lipgloss.JoinHorizontal(lipgloss.Center, rowString, letStyle.Render(string(let.char)))
+		}
+		if result == "" {
+			result = rowString
+		} else {
+			result = lipgloss.JoinVertical(lipgloss.Center, result, rowString)
 		}
 	}
-	testString := fmt.Sprintf("%s\n", letterToString(m.answer)) + m.renderWords()
+	return keyboardStyle.Render(result)
+}
+
+func (m model) renderTitle() string {
+	var result string
+	title := titleStyle.Render("Weasdle")
+	errorString := errorStyle.Render(m.errorMsg)
+	if m.gameState == Won {
+		if m.wordPos == 0 {
+			errorString = errorStyle.Foreground(GREEN).Render("You won in 1 try!")
+		} else {
+			errorString = errorStyle.Foreground(GREEN).Render(fmt.Sprintf("You won in %d tries!", m.wordPos+1))
+		}
+	}
+	result = lipgloss.NewStyle().Width(52).Render(
+		lipgloss.JoinHorizontal(lipgloss.Center, title, errorString),
+	)
+
+	return result
+}
+
+func (m model) View() tea.View {
+	answer := fmt.Sprintf("%s\n", letterToString(m.answer))
+
+	result := areaStyle.Render(
+		lipgloss.JoinVertical(
+			lipgloss.Center,
+			m.renderTitle(),
+			m.renderKeys(),
+			m.renderWords(),
+			answer,
+		))
 
 	// Init view
-	v := tea.NewView(testString)
+	v := tea.NewView(result)
 	v.AltScreen = true
 	return v
 }

@@ -78,7 +78,9 @@ func letterToString(word []letter) string {
 
 // Run on guess submission
 func isMatching(guess []letter, answer []letter) ([]letter, bool) {
+	// Make a copy; this thing was mutating
 	word := guess
+
 	matching := true
 
 	// Cast answer to map for lookup

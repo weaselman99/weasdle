@@ -58,7 +58,7 @@ func (m *model) resetModel() {
 	m.gameState = InProgress
 	m.resetLetters()
 	m.answer = newWord(realWords)
-	m.guesses = [][]letter{}
+	m.guesses = make([][]letter, 6)
 	m.wordPos = 0
 	m.charPos = 0
 	m.errorMsg = ""
