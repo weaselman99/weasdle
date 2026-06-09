@@ -8,7 +8,8 @@ import (
 type letterState int
 
 const (
-	Unset letterState = iota
+	Empty letterState = iota
+	Unset
 	Wrong
 	Partial
 	Correct
@@ -59,6 +60,17 @@ func (m *model) resetModel() {
 	m.resetLetters()
 	m.answer = newWord(realWords)
 	m.guesses = make([][]letter, 6)
+	for i := range m.guesses {
+		m.guesses[i] = make([]letter, 5)
+	}
+	for row := range m.guesses {
+		for col := range m.guesses[row] {
+			m.guesses[row][col] = letter{
+				char:  ' ',
+				state: Empty,
+			}
+		}
+	}
 	m.wordPos = 0
 	m.charPos = 0
 	m.errorMsg = ""

@@ -22,7 +22,7 @@ var areaStyle = lipgloss.NewStyle().
 	Width(60).
 	Height(30).
 	Border(lipgloss.RoundedBorder(), true).
-	Align(lipgloss.Center)
+	Align(lipgloss.Center).Margin(1, 4)
 
 var textStyle = lipgloss.NewStyle().
 	Bold(true).
@@ -34,7 +34,8 @@ var boxStyle = lipgloss.NewStyle().
 	Padding(0, 2).
 	Border(lipgloss.ThickBorder(), true)
 
-var rowStyle = lipgloss.NewStyle()
+var rowStyle = lipgloss.NewStyle().
+	Width(56)
 
 var lettersStyle = lipgloss.NewStyle().
 	Margin(0, 0, 0).
@@ -59,34 +60,39 @@ var errorStyle = lipgloss.NewStyle().
 
 // ---------------- VIEWS	----------------
 
-func (m model) renderWords() string {
+func renderWord(word []letter) string {
 	var result string
-	for _, guess := range m.guesses {
-		var word string
-		for _, char := range guess {
-			// Change BG based on the state
-			let := boxStyle
-			switch char.state {
-			case Wrong:
-				let = let.Foreground(GRAY).BorderForeground(GRAY)
-			case Partial:
-				let = let.Foreground(YELLOW).BorderForeground(YELLOW)
-			case Correct:
-				let = let.Foreground(GREEN).BorderForeground(GREEN)
-			}
-			word = lipgloss.JoinHorizontal(
-				lipgloss.Left,
-				word,
-				let.Render(string(char.char)),
-			)
+	for _, char := range word {
+		// Change BG based on the state
+		let := boxStyle
+		switch char.state {
+		case Empty:
+			let = let.Foreground(GRAY).BorderForeground(GRAY)
+		case Wrong:
+			let = let.Foreground(GRAY).BorderForeground(GRAY)
+		case Partial:
+			let = let.Foreground(YELLOW).BorderForeground(YELLOW)
+		case Correct:
+			let = let.Foreground(GREEN).BorderForeground(GREEN)
 		}
-		row := rowStyle.Render(word)
+		result = lipgloss.JoinHorizontal(
+			lipgloss.Left,
+			result,
+			let.Render(string(char.char)),
+		)
+	}
+	return result
+}
 
-		if result == "" {
-			result = row
-		} else {
-			result = lipgloss.JoinVertical(lipgloss.Left, result, row)
-		}
+func (m model) renderRows() string {
+	var result string
+	for i, word := range m.guesses {
+		row := lipgloss.JoinHorizontal(
+			lipgloss.Center,
+			textStyle.Render(fmt.Sprintf("%d   ", i+1)),
+			renderWord(word),
+		)
+		result = lipgloss.JoinVertical(lipgloss.Left, result, row)
 	}
 	return result
 }
@@ -148,8 +154,8 @@ func (m model) View() tea.View {
 		lipgloss.JoinVertical(
 			lipgloss.Center,
 			m.renderTitle(),
+			m.renderRows(),
 			m.renderKeys(),
-			m.renderWords(),
 			answer,
 		))
 

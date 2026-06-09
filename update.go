@@ -46,16 +46,19 @@ func (m *model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 // Handles backspc - remove last letter
 func (m *model) handleBackspace() (tea.Model, tea.Cmd) {
+	m.errorMsg = ""
 	// Empty word
 	if m.charPos == 0 {
 		return m, nil
 	}
 
 	// Replace current word with []slice with last element removed
-	m.guesses[m.wordPos] = m.guesses[m.wordPos][:m.charPos-1]
-	m.errorMsg = ""
-
+	m.guesses[m.wordPos][m.charPos-1] = letter{
+		char:  ' ',
+		state: Empty,
+	}
 	m.charPos--
+
 	return m, nil
 }
 
@@ -125,16 +128,11 @@ func (m *model) handleRune(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	// Create new word if current word doesn't exist yet
-	if len(m.guesses) <= m.wordPos {
-		m.guesses = append(m.guesses, []letter{})
-	}
-
-	// Append new char
-	m.guesses[m.wordPos] = append(m.guesses[m.wordPos], letter{
+	// Update letter
+	m.guesses[m.wordPos][m.charPos] = letter{
 		char:  key,
 		state: Unset,
-	})
+	}
 
 	m.charPos += 1
 
