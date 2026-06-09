@@ -4,7 +4,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
-// Enum
+// ENUM for tracking guessed letter states
 type letterState int
 
 const (
@@ -14,6 +14,15 @@ const (
 	Correct
 )
 
+// ENUM for tracking if the user has won or not
+type gameState int
+
+const (
+	InProgress gameState = iota
+	Won
+	Lost
+)
+
 type letter struct {
 	char  rune
 	state letterState
@@ -21,15 +30,16 @@ type letter struct {
 
 // ---------------- Model ----------------
 type model struct {
-	done    bool            // If session is over
-	answer  string          // Correct string
-	letters map[rune]letter // Which letters have been guessed
-	guesses [][]letter      // Guessed words in session
-	wordPos int             // Current position in guesses
-	charPos int             // Currect position in the word
+	gameState gameState       // If session is over
+	answer    []letter        // Correct string
+	letters   map[rune]letter // Which letters have been guessed
+	guesses   [][]letter      // Guessed words in session
+	wordPos   int             // Current position in guesses
+	charPos   int             // Currect position in the word
+	errorMsg  string          // When guess submission isnt valid
 }
 
-func resetLetters() map[rune]letter {
+func (m *model) resetLetters() {
 	letters := "qwertyuiopasdfghjklzxcvbnm"
 
 	letterMap := make(map[rune]letter)
@@ -41,29 +51,22 @@ func resetLetters() map[rune]letter {
 		}
 	}
 
-	return letterMap
+	m.letters = letterMap
 }
 
-func resetModel() (tea.Model, tea.Cmd) {
-	m := model{
-		// m.resetLetters()
-		// m.done = false
-		// m.wordPos = 0
-		// m.charPos = 0
-		// m.answer = newWord(realWords)
-		// m.guesses = [][]letter{}
-		letters: resetLetters(),
-		done:    false,
-		wordPos: 0,
-		charPos: 0,
-		answer:  newWord(realWords),
-		guesses: [][]letter{},
-	}
-	return m, nil
+func (m *model) resetModel() {
+	m.gameState = InProgress
+	m.resetLetters()
+	m.answer = newWord(realWords)
+	m.guesses = [][]letter{}
+	m.wordPos = 0
+	m.charPos = 0
+	m.errorMsg = ""
 }
 
 func initModel() tea.Model {
-	m, _ := resetModel()
+	var m model
+	m.resetModel()
 	return m
 }
 

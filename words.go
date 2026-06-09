@@ -45,29 +45,51 @@ func loadAnswers(path string) ([]string, error) {
 	return wordlist, scanner.Err()
 }
 
-func newWord(wordlist []string) string {
+// Randomly picks a new word from a string array and casts it to a []letter
+func newWord(wordlist []string) []letter {
 	size := len(wordlist)
 	// error case
 	if size == 0 {
-		return "ERROR"
+		return []letter{}
 	}
-	return wordlist[rand.Intn(size)]
+	return stringToLetters(wordlist[rand.Intn(size)])
+}
+
+// Converts string to []letter
+func stringToLetters(word string) []letter {
+	var result []letter
+	for _, let := range word {
+		result = append(result, letter{
+			char:  let,
+			state: Unset,
+		})
+	}
+	return result
+}
+
+// Converts []letter to string for comparison or lookup
+func letterToString(word []letter) string {
+	var result string
+	for _, char := range word {
+		result += string(char.char)
+	}
+	return result
 }
 
 // Run on guess submission
-func isMatching(guess []letter, answer string) ([]letter, bool) {
+func isMatching(guess []letter, answer []letter) ([]letter, bool) {
 	word := guess
 	matching := true
 
 	// Cast answer to map for lookup
 	inAnswer := make(map[rune]struct{})
 	for _, char := range answer {
-		inAnswer[rune(char)] = struct{}{}
+		inAnswer[char.char] = struct{}{}
 	}
 
 	//
 	for i, char := range word {
-		if char.char == rune(answer[i]) {
+		if char.char == answer[i].char {
 			// Correct VAL and POS
 			char.state = Correct
 		} else if _, ok := inAnswer[char.char]; ok {

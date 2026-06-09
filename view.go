@@ -15,7 +15,7 @@ func (m model) View() tea.View {
 			guesses += string(char.char)
 		}
 	}
-	testString := fmt.Sprintf("%s", m.answer) + guesses
+	testString := fmt.Sprintf("%s", letterToString(m.answer)) + guesses
 
 	// Init view
 	v := tea.NewView(testString)
