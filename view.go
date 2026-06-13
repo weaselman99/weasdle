@@ -13,9 +13,9 @@ var (
 	WHITE  = lipgloss.Color("#dddddd")
 	BLACK  = lipgloss.Black
 	GRAY   = lipgloss.Color("#444444")
-	RED    = lipgloss.Red
-	GREEN  = lipgloss.Green
-	YELLOW = lipgloss.Yellow
+	RED    = lipgloss.Color("#ff5d62")
+	GREEN  = lipgloss.Color("#98bb6c")
+	YELLOW = lipgloss.Color("#ffa066")
 )
 
 var areaStyle = lipgloss.NewStyle().
@@ -139,6 +139,8 @@ func (m model) renderTitle() string {
 		} else {
 			errorString = errorStyle.Foreground(GREEN).Render(fmt.Sprintf("You won in %d tries!", m.wordPos+1))
 		}
+	} else if m.gameState == Lost {
+		errorString = errorStyle.Render("You lost! The answer was " + fmt.Sprintf("\"%s\"", letterToString(m.answer)))
 	}
 	result = lipgloss.NewStyle().Width(52).Render(
 		lipgloss.JoinHorizontal(lipgloss.Center, title, errorString),
@@ -148,15 +150,13 @@ func (m model) renderTitle() string {
 }
 
 func (m model) View() tea.View {
-	answer := fmt.Sprintf("%s\n", letterToString(m.answer))
-
 	result := areaStyle.Render(
 		lipgloss.JoinVertical(
 			lipgloss.Center,
 			m.renderTitle(),
 			m.renderRows(),
 			m.renderKeys(),
-			answer,
+			// fmt.Sprintf("%s\n", letterToString(m.answer)), // Show answer
 		))
 
 	// Init view
